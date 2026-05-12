@@ -17,3 +17,12 @@ type ReorgMetric struct {
 	NewHead  string
 	Epoch    uint64
 }
+
+type AttestationDelayMetric struct {
+	Slot             uint64
+	TotalAttestations int
+	MinDelay         uint64
+	MaxDelay         uint64
+	AvgDelay         float64
+	Distribution     map[uint64]uint64 // delay → count e.g. {1:120, 2:8, 3:2}
+}

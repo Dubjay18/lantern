@@ -6,38 +6,35 @@ import (
 	"time"
 
 	"github.com/Dubjay/lantern/internal/beacon"
-	
 )
 
-type ForkChoiceProcessor struct{
-	mu          sync.RWMutex
-History []beacon.HeadSnapshot
-	reorgs      []ReorgMetric
+type ForkChoiceProcessor struct {
+	mu         sync.RWMutex
+	History    []beacon.HeadSnapshot
+	reorgs     []ReorgMetric
 	maxHistory int
-	lastSlot uint64
+	lastSlot   uint64
 
 	onMetric func(metric ForkChoiceMetric)
-	onReorg func(metric ReorgMetric)
+	onReorg  func(metric ReorgMetric)
 }
 
 func NewForkChoiceProcessor() *ForkChoiceProcessor {
 	return &ForkChoiceProcessor{
-		History: []beacon.HeadSnapshot{},
-		reorgs:      []ReorgMetric{},
+		History:    []beacon.HeadSnapshot{},
+		reorgs:     []ReorgMetric{},
 		maxHistory: 100,
 		lastSlot:   0,
 	}
 }
 
-
 func (p *ForkChoiceProcessor) HandleHead(ctx context.Context, event beacon.HeadEvent) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-
 	gap := uint64(0)
 	if p.lastSlot != 0 && event.Slot > p.lastSlot+1 {
-		gap = event.Slot - p.lastSlot -1
+		gap = event.Slot - p.lastSlot - 1
 	}
 	// append to history, detect if slot gap > 1. emit ForkChoiceMetric
 	p.History = append(p.History, beacon.HeadSnapshot{
@@ -56,31 +53,29 @@ func (p *ForkChoiceProcessor) HandleHead(ctx context.Context, event beacon.HeadE
 	// emit metric  - non-blocking
 	if p.onMetric != nil {
 		p.onMetric(ForkChoiceMetric{
-			Slot: event.Slot,
-			BlockRoot: event.Block,
-			StateRoot: event.State,
+			Slot:            event.Slot,
+			BlockRoot:       event.Block,
+			StateRoot:       event.State,
 			EpochTransition: event.EpochTransition,
-			SlotGap: gap,
-			ReceivedAt: time.Now(),
+			SlotGap:         gap,
+			ReceivedAt:      time.Now(),
 		})
 	}
-		
 
- return nil
+	return nil
 
 }
-
 
 func (p *ForkChoiceProcessor) HandleReorg(ctx context.Context, event beacon.ReorgEvent) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	m := ReorgMetric{
-		Slot: event.Slot,
-		Depth: event.Depth,
+		Slot:    event.Slot,
+		Depth:   event.Depth,
 		OldHead: event.OldHeadBlock,
 		NewHead: event.NewHeadBlock,
-		Epoch: event.Epoch,
+		Epoch:   event.Epoch,
 	}
 	p.reorgs = append(p.reorgs, m)
 
