@@ -13,12 +13,16 @@ import (
 func main() {
 	cfg := config.NewConfig()
 	// Load configuration from file or environment variables here
-
+	aggregator := processor.NewMetricsAggregator(256)
 	beaconClient := beacon.NewBeaconClient(*cfg)
 	sseConsumer := beacon.NewSSEConsumer(beaconClient)
 	dispatcher := processor.NewDispatcher()
 	loggingProcessor := processor.NewLoggingProcessor()
+	attestationProcessor := processor.NewAttestionProcessor(beaconClient, func(m processor.AttestationDelayMetric) {
+		aggregator.Ingest(m)
+	})
 	dispatcher.Register("logging", loggingProcessor)
+	dispatcher.Register("attestation", attestationProcessor)
 	ctx := context.Background()
 
 	sseConsumer.On(beacon.EventHead, func(event beacon.BeaconEvent) {

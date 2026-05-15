@@ -18,7 +18,7 @@ type IDispatcher interface {
 }
 
 type Processor interface {
-	HandleHead(ctx context.Context, event beacon.HeadEvent)
+	HandleHead(ctx context.Context, event beacon.HeadEvent) error
 	HandleReorg(ctx context.Context, event beacon.ReorgEvent)
 	HandleFinalized(ctx context.Context, event beacon.FinalizedCheckpointEvent)
 }

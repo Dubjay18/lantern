@@ -13,8 +13,9 @@ func NewLoggingProcessor() *LoggingProcessor {
 	return &LoggingProcessor{}
 }
 
-func (p *LoggingProcessor) HandleHead(ctx context.Context, event beacon.HeadEvent) {
+func (p *LoggingProcessor) HandleHead(ctx context.Context, event beacon.HeadEvent) error {
 	log.Info().Uint64("slot", event.Slot).Str("block", event.Block).Str("state", event.State).Bool("epoch_transition", event.EpochTransition).Msg("head event")
+	return nil
 }
 
 func (p *LoggingProcessor) HandleReorg(ctx context.Context, event beacon.ReorgEvent) {
